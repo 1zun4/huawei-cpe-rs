@@ -2,7 +2,7 @@
 name = "huawei-cpe-rs"
 description = "Control Huawei LTE/4G CPE routers (e.g. B528s, B818) using Rust"
 authors = ["Izuna <izuna.seikatsu@ccbluex.net>"]
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 license = "GPL-3.0"
 repository = "https://github.com/1zun4/huawei-cpe-rs/"
