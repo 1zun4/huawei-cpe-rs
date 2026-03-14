@@ -98,7 +98,14 @@ pub trait RouterClient {
     async fn set_wifi_enabled(&self, enabled: bool) -> Result<()>;
 
     /// Set the network mode (e.g. auto, 3G only, 4G only).
-    async fn set_net_mode(&self, mode: enums::NetworkMode) -> Result<()>;
+    ///
+    /// If `network_band`/`lte_band` are `None`, Huawei "ALL" masks are used.
+    async fn set_net_mode(
+        &self,
+        mode: enums::NetworkMode,
+        network_band: Option<enums::NetworkBandMask>,
+        lte_band: Option<enums::LteBandMask>,
+    ) -> Result<()>;
 
     /// Get device information.
     async fn get_device_information(&self) -> Result<client::DeviceInformation>;

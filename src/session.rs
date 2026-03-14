@@ -31,7 +31,7 @@ impl HuaweiSession {
         let mut builder = ClientBuilder::new()
             .cookie_store(true)
             .pool_max_idle_per_host(0)
-            .timeout(Duration::from_secs(10));
+            .timeout(Duration::from_secs(60));
 
         #[cfg(any(feature = "tls-native", feature = "tls-rustls"))]
         {

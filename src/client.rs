@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::enums::{ControlMode, NetworkMode};
+use crate::enums::{ControlMode, LteBandMask, NetworkBandMask, NetworkMode};
 use crate::session::HuaweiSession;
 use crate::RouterClient;
 
@@ -302,6 +302,7 @@ impl HuaweiClient {
     pub async fn get_wifi_network_switch(&self) -> Result<WifiNetworkSwitch> {
         self.session.api_get("wlan/wifi-network-switch").await
     }
+
 }
 
 #[async_trait::async_trait]
@@ -371,7 +372,12 @@ impl RouterClient for HuaweiClient {
         Ok(())
     }
 
-    async fn set_net_mode(&self, mode: NetworkMode) -> Result<()> {
+    async fn set_net_mode(
+        &self,
+        mode: NetworkMode,
+        network_band: Option<NetworkBandMask>,
+        lte_band: Option<LteBandMask>,
+    ) -> Result<()> {
         #[derive(Serialize)]
         struct NetModeRequest {
             #[serde(rename = "NetworkMode")]
@@ -381,16 +387,25 @@ impl RouterClient for HuaweiClient {
             #[serde(rename = "LTEBand")]
             lte_band: String,
         }
+        
+        let current_net_mode = if network_band.is_none() || lte_band.is_none() {
+            self.get_net_mode().await.ok()
+        } else {
+            None
+        };
 
         self.session
-            .api_post_set(
-                "net/net-mode",
-                &NetModeRequest {
-                    network_mode: mode.as_api_str().to_string(),
-                    network_band: "3FFFFFFF".to_string(),
-                    lte_band: "7FFFFFFFFFFFFFFF".to_string(),
-                },
-            )
+            .api_post_set("net/net-mode", &NetModeRequest {
+                network_mode: mode.as_api_str().to_string(),
+                network_band: network_band
+                    .map(|b| b.as_api_hex())
+                    .or_else(|| current_net_mode.as_ref().and_then(|m| m.network_band.clone()))
+                    .unwrap_or_else(|| NetworkBandMask::ALL.as_api_hex()),
+                lte_band: lte_band
+                    .map(|b| b.as_api_hex())
+                    .or_else(|| current_net_mode.as_ref().and_then(|m| m.lte_band.clone()))
+                    .unwrap_or_else(|| LteBandMask::ALL.as_api_hex()),
+            })
             .await
             .context("Set net mode failed")?;
         Ok(())

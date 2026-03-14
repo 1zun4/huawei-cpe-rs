@@ -2,7 +2,7 @@ use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64;
 
 use crate::client::{non_empty, parse_signal_value};
-use crate::enums::NetworkMode;
+use crate::enums::{LteBandMask, NetworkBandMask, NetworkMode};
 use crate::normalize_router_url;
 use crate::session::HuaweiSession;
 
@@ -115,4 +115,18 @@ fn test_huawei_client_new() {
 fn test_huawei_client_new_invalid_url() {
     let client = crate::client::HuaweiClient::new("not-a-url");
     assert!(client.is_err());
+}
+
+#[test]
+fn test_network_band_mask_or_and_hex() {
+    let mask = NetworkBandMask::UMTS_B1_2100 | NetworkBandMask::UMTS_B5_850;
+    assert_eq!(mask.bits(), 0x4400000);
+    assert_eq!(mask.as_api_hex(), "4400000");
+}
+
+#[test]
+fn test_lte_band_mask_or_and_hex() {
+    let mask = LteBandMask::B3 | LteBandMask::B7 | LteBandMask::B20;
+    assert_eq!(mask.bits(), 0x80044);
+    assert_eq!(mask.as_api_hex(), "80044");
 }
